@@ -1,4 +1,3 @@
-#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -10,34 +9,50 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "libgetline.h"
+
 struct libgetln_context {
 	char *buffer;
-	char *bufptr;
+	char *rdptr;
 	size_t bufsz;
 	size_t buflen;
 	int file;
-	_Bool eof;
-	_Bool verbose;
+	unsigned char eof:1;
+	unsigned char verbose:1;
 };
 
-struct libgetln_context *libgetln_new_context(char const *filename, size_t size, int verbose) 
+struct libgetln_context *libgetln_new_context(void *file, size_t size, unsigned int opts) 
 {
 	struct libgetln_context *ctx;
+	unsigned char verbose;
 	int fd;
 
-	fd = open(filename, O_RDONLY);
+	verbose = !!(opts & LIBGETLN_ERR_VERBOSE);
 
-	if (fd < 0) {
-		if (verbose)
-			perror("libgetln_new_context: open");
+	if (opts & LIBGETLN_FILE_FD) {
+		if (*(int *)file < 0) {
+			errno = EBADF;
 
-		return (NULL);
-	}
+			if (verbose)
+				perror("libgetln_new_context");
+		}
+
+		fd = *(int *)file;
+	} else {
+		fd = open((char *)file, O_RDONLY);
+
+		if (fd < 0) {
+			if (verbose)
+				perror("libgetln_new_context: open");
+
+			return (NULL);
+		}
+	}		
 
 	ctx = malloc(sizeof(struct libgetln_context));
 
 	if (ctx == NULL) {
-		if (verbose)
+		if (ctx->verbose)
 			perror("libgetln_new_context: malloc");
 
 		goto out_close;
@@ -46,19 +61,18 @@ struct libgetln_context *libgetln_new_context(char const *filename, size_t size,
 	ctx->buffer = malloc(size * sizeof(char));
 
 	if (ctx->buffer == NULL) {
-		if (verbose)
+		if (ctx->verbose)
 			perror("libgetln_new_context: malloc");
 
 		goto out_free_ctx;
 		return (NULL);
 	}
 
-	ctx->bufptr = ctx->buffer;
+	ctx->rdptr = ctx->buffer;
 	ctx->bufsz = size;
 	ctx->file = fd;
-	ctx->buflen = 0;
-	ctx->eof = false;
-	ctx->verbose = !!verbose;
+	ctx->eof = ctx->buflen = 0;
+	ctx->verbose = verbose;
 
 	return (ctx);
 
@@ -91,68 +105,92 @@ int libgetln_free_context(struct libgetln_context *ctx, int *fd)
 	return (0);
 }
 
-int libgetln_file_seek(struct libgetln_context *ctx, off_t offset, int whence)
+void libgetln_reset_buffer(struct libgetln_context *ctx)
 {
-	off_t ret = lseek(ctx->file, offset, whence);
+	ctx->rdptr = ctx->buffer;
+	ctx->buflen = 0;
+}
 
-	if (ret < 0) {
+int libgetln_set_file(struct libgetln_context *ctx, int fd)
+{
+	if (fd < 0) {
+		errno = EINVAL;
+
 		if (ctx->verbose)
-			perror("libgetln_file_seek: lseek");
+			perror("libgetln_set_file");
 
 		return (-1);
 	}
-
-	ctx->bufptr = ctx->buffer;
+	
+	ctx->rdptr = ctx->buffer;
 	ctx->buflen = 0;
+	ctx->file = fd;
 
 	return (0);
 }
 
+int libgetln_get_file(struct libgetln_context *ctx)
+{
+	return (ctx->file);
+}
+
 size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 {
-	size_t avail, cplen, llen = 0, lsize = *size;
+	size_t need, avail, cplen, llen = 0, lsize = *size;
 	char *new, *endp = NULL;
 	ssize_t count;
 
-	do {
+	for (;;) {
 		if (ctx->buflen) {
-			endp = memchr(ctx->bufptr, '\n', ctx->buflen);
+			endp = memchr(ctx->rdptr, '\n', ctx->buflen);
 
 			if (endp != NULL)
-				cplen = endp++ - ctx->bufptr;
+				cplen = ++endp - ctx->rdptr;
 			else
 				cplen = ctx->buflen;
 
-			if (++cplen > 1) {
-				avail = lsize - llen;
+			need = llen + cplen + 1;		
 
-				if (cplen > avail) {
-					lsize += cplen - avail;		
-					new = realloc(*line, lsize);
+			if (lsize < need) {
+				if (SIZE_MAX - lsize < need - lsize) {
+					errno = EOVERFLOW;
 
-					if (new == NULL) {
-						if (ctx->verbose)
-							perror("readln: realloc");
+					if (ctx->verbose)
+						perror("libgetln_getline:");
 
-						return (SIZE_MAX);
-					}
-
-					*line = new;
-					*size = lsize;
+					return (SIZE_MAX);
 				}
 
-				memcpy(&(*line)[llen], ctx->bufptr, cplen - 1);
+				lsize += need;		
+				new = realloc(*line, lsize);
 
-				llen += cplen;
-				(*line)[llen - 1] = '\0';
+				if (new == NULL) {
+					if (ctx->verbose)
+						perror("libgetln_getline: realloc");
+
+					return (SIZE_MAX);
+				}
+
+				*line = new;
+				*size = lsize;
 			}
 
+			memcpy(&(*line)[llen], ctx->rdptr, cplen);
+
+			llen += cplen;
+			(*line)[llen] = '\0';
+
 			if (endp == NULL || endp == &ctx->buffer[ctx->bufsz]) {
-				ctx->bufptr = ctx->buffer;
+				ctx->rdptr = ctx->buffer;
 				ctx->buflen = 0;
+
+				if (ctx->eof)
+					return (llen);
 			} else {
-				ctx->buflen = &ctx->bufptr[ctx->buflen] - endp;
-				ctx->bufptr = endp;				
+				ctx->buflen = &ctx->rdptr[ctx->buflen] - endp;
+				ctx->rdptr = endp;
+				
+				return (llen);				
 			}
 		} else if (!ctx->eof) {
 			count = read(ctx->file, ctx->buffer, ctx->bufsz);
@@ -162,20 +200,20 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 					continue;
 
 				if (ctx->verbose)
-					perror("readln: read");
+					perror("libgetln_getline: read");
 
 				return (SIZE_MAX);
 			}
 
 			if (!count) {
-				ctx->eof = true;
+				ctx->eof = 1;
 				return (llen);
 			}
 
 			ctx->buflen = count;
 		} else
 			break;
-	} while (endp == NULL || cplen == 1);
+	}
 
-	return (llen);
+	return (0);
 }
