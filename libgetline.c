@@ -16,7 +16,6 @@
 #define MSB(t, n)  ((t)1 << sizeof(t) * CHAR_BIT - 1 & n)
 
 struct libgetln_context {
-	char *buffer;
 	char *rdptr;
 	size_t size;
 	size_t used;
@@ -26,6 +25,7 @@ struct libgetln_context {
 		unsigned char verbose:1;
 		unsigned char closefd:1;
 	} flg;
+	char buffer[0];
 };
 
 struct libgetln_context *libgetln_new_context(void *file, size_t size, unsigned int opts) 
@@ -34,7 +34,7 @@ struct libgetln_context *libgetln_new_context(void *file, size_t size, unsigned 
 	unsigned char verbose;
 
 	verbose = !!(opts & LIBGETLN_OPT_ERR_VERBOSE);
-	ctx = malloc(sizeof(struct libgetln_context));
+	ctx = malloc(sizeof(struct libgetln_context) + size * sizeof(char));
 
 	if (ctx == NULL) {
 		if (verbose)
@@ -42,59 +42,50 @@ struct libgetln_context *libgetln_new_context(void *file, size_t size, unsigned 
 
 		return (NULL);
 	}
+	
+	ctx->flg.verbose = verbose;
+	ctx->file = -1;
 
-	ctx->buffer = malloc(size * sizeof(char));
+	if (file != NULL) {
+		if (opts & LIBGETLN_OPT_FILE_ISFD) {
+			if (*(int *)file < 0) {
+				errno = EBADF;
 
-	if (ctx->buffer == NULL) {
-		if (verbose)
-			perror("libgetln_new_context: malloc");
+				if (ctx->flg.verbose)
+					perror("libgetln_new_context");
 
-		free(ctx);
-		return (NULL);
+				free(ctx);
+				return (NULL);
+			}
+
+			ctx->file = *(int *)file;
+			ctx->flg.closefd = !!(opts & LIBGETLN_OPT_FILE_CLOSE);
+		} else {
+			ctx->file = open((char *)file, O_RDONLY);
+
+			if (ctx->file < 0) {
+				if (ctx->flg.verbose)
+					perror("libgetln_new_context: open");
+
+				free(ctx);
+				return (NULL);
+			}
+
+			ctx->flg.closefd = 1 ^ !!(opts & LIBGETLN_OPT_FILE_NOCLOSE);
+		}
 	}
-
-	if (opts & LIBGETLN_OPT_FILE_ISFD) {
-		if (*(int *)file < 0) {
-			errno = EBADF;
-
-			if (verbose)
-				perror("libgetln_new_context");
-
-			goto out_free;
-		}
-
-		ctx->file = *(int *)file;
-		ctx->flg.closefd = !!(opts & LIBGETLN_OPT_FILE_CLOSE);
-	} else {
-		ctx->file = open((char *)file, O_RDONLY);
-
-		if (ctx->file < 0) {
-			if (verbose)
-				perror("libgetln_new_context: open");
-
-			goto out_free;
-		}
-
-		ctx->flg.closefd = 1 ^ !!(opts & LIBGETLN_OPT_FILE_NOCLOSE);
-	}		
 
 	ctx->rdptr = ctx->buffer;
 	ctx->size = size;	
-	ctx->flg.eof = ctx->used = 0;
-	ctx->flg.verbose = verbose;
+	ctx->flg.eof = ctx->used = 0;	
 
 	return (ctx);
-
-out_free:
-	free(ctx->buffer);
-	free(ctx);
-
-	return (NULL);
 }
 
 int libgetln_free_context(struct libgetln_context *ctx, int *fd)
 {
-	if (ctx->flg.closefd && close(ctx->file) < 0) {
+	if (ctx->file > 0 && 
+		ctx->flg.closefd && close(ctx->file) < 0) {
 		if (ctx->flg.verbose)
 			perror("libgetln_free_context: close");
 
@@ -104,7 +95,6 @@ int libgetln_free_context(struct libgetln_context *ctx, int *fd)
 		return (-1);
 	}
 
-	free(ctx->buffer);
 	free(ctx);
 
 	return (0);
@@ -116,15 +106,31 @@ void libgetln_reset_buffer(struct libgetln_context *ctx)
 	ctx->used = 0;
 }
 
-int libgetln_set_file(struct libgetln_context *ctx, int fd)
+int libgetln_set_file(struct libgetln_context *ctx, void *fd, unsigned int opts)
 {
-	if (fd < 0) {
-		errno = EINVAL;
+	if (opts & LIBGETLN_OPT_FILE_ISFD) {
+		if (*(int *)file < 0) {
+			errno = EBADF;
 
-		if (ctx->flg.verbose)
-			perror("libgetln_set_file");
+			if (ctx->flg.verbose)
+				perror("libgetln_set_file");
 
-		return (-1);
+			return (-1);
+		}
+
+		ctx->file = *(int *)file;
+		ctx->flg.closefd = !!(opts & LIBGETLN_OPT_FILE_CLOSE);
+	} else {
+		ctx->file = open((char *)file, O_RDONLY);
+
+		if (ctx->file < 0) {
+			if (ctx->flg.verbose)
+				perror("libgetln_new_context: open");
+
+			return (-1);
+		}
+
+		ctx->flg.closefd = 1 ^ !!(opts & LIBGETLN_OPT_FILE_NOCLOSE);
 	}
 	
 	ctx->rdptr = ctx->buffer;
@@ -144,6 +150,15 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 	char *p, *newptr, *endptr = &ctx->buffer[ctx->used];
 	size_t cnt, cplen, lsize, llen = 0;
 	int err;
+
+	if (ctx->file < 0) {
+		errno = EBADF;
+		
+		if (ctx->flg.verbose)
+			perror("libgetln_getline");
+		
+		return (SIZE_MAX);
+	}
 
 	if (ctx->flg.eof)
 		return (0);
