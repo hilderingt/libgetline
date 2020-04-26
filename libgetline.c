@@ -212,7 +212,7 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 
 			if (*size < lsize) {
 				if (!MSB(size_t, *size) && 
-								lsize < *size * 2)
+                                lsize < *size * 2)
 					lsize = *size * 2;
 		
 				new = realloc(*line, lsize);
