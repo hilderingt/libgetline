@@ -1,9 +1,9 @@
 CC=gcc
 CFLAGS=-g -Wall
-INCLUDE=-I.
+INCLUDE=-I./include
 TARGET=libgetline.so
 
 all: ${TARGET}
 
-${TARGET}: libgetline.c libgetline.h
-	${CC} -o ${TARGET} ${CFLAGS} -shared -fpic ${INCLUDE} libgetline.c
+${TARGET}: src/libgetline.c include/libgetline.h
+	${CC} -o ${TARGET} ${CFLAGS} -shared -fpic ${INCLUDE} src/libgetline.c
