@@ -1,5 +1,5 @@
-CC=gcc
-CFLAGS=-g -Wall
+CC=gccb
+CFLAGS=-Wall
 INCLUDE=-I./include
 TARGET=libgetline.so
 
