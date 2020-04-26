@@ -13,7 +13,7 @@
 
 #include "libgetline.h"
 
-#define MSB(t, n)  ((t)1 << sizeof(t) * CHAR_BIT - 1 & n)
+#define MSB(t, n)  ((t)1 << (sizeof(t) * CHAR_BIT - 1) & n)
 
 struct libgetln_context {
 	char *dpos;
@@ -33,7 +33,7 @@ struct libgetln_context *libgetln_new_context(size_t size, int verbose)
 	struct libgetln_context *ctx;
 	
 	if (!size)
-		size == LIBGETLN_SIZE_DEFAULT;
+		size = LIBGETLN_SIZE_DEFAULT;
 
 	ctx = malloc(sizeof(struct libgetln_context) + size * sizeof(char));
 
