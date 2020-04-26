@@ -63,8 +63,7 @@ int libgetln_free_context(struct libgetln_context *ctx, int *fd)
 		return (-1);
 	}
 	
-	if (ctx->file > 0 && ctx->flg.closefd && 
-	                        close(ctx->file) < 0) {
+	if (ctx->file > 0 && ctx->flg.closefd && close(ctx->file) < 0) {
 		if (ctx->flg.verbose)
 			perror("libgetln_free_context: close");
 
@@ -211,8 +210,7 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 			lsize = llen + cplen + !llen;		
 
 			if (*size < lsize) {
-				if (!MSB(size_t, *size) && 
-                                lsize < *size * 2)
+				if (!MSB(size_t, *size) && lsize < *size * 2)
 					lsize = *size * 2;
 		
 				new = realloc(*line, lsize);
