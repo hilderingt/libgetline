@@ -63,8 +63,8 @@ int libgetln_free_context(struct libgetln_context *ctx, int *fd)
 		return (-1);
 	}
 	
-	if (ctx->file > 0 && 
-		ctx->flg.closefd && close(ctx->file) < 0) {
+	if (ctx->file > 0 && ctx->flg.closefd && 
+	                        close(ctx->file) < 0) {
 		if (ctx->flg.verbose)
 			perror("libgetln_free_context: close");
 
@@ -130,8 +130,7 @@ int libgetln_set_file(struct libgetln_context *ctx, void *file, unsigned int opt
 		}
 
 		ctx->file = fd;
-		ctx->flg.closefd = 1 ^ !!(opts & 
-								LIBGETLN_FILE_NOCLOSE);
+		ctx->flg.closefd = 1 ^ !!(opts & LIBGETLN_FILE_NOCLOSE);
 	}
 	
 	ctx->dpos = ctx->data;
@@ -182,14 +181,14 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 		return (0);
 	
 	if (*line == NULL && *size) {
-			*line = malloc(*size * sizeof(char));
+		*line = malloc(*size * sizeof(char));
 			
-			if (*line == NULL) {
-				if (ctx->flg.verbose)
-					perror("libgetln_getline: malloc");
+		if (*line == NULL) {
+			if (ctx->flg.verbose)
+				perror("libgetln_getline: malloc");
 				
-				return (SIZE_MAX);
-			}
+			return (SIZE_MAX);
+		}
 	}
 
 	for (;;) {
