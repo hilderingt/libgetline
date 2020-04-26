@@ -13,11 +13,11 @@ enum {
 
 struct libgetln_context;
 
-extern struct libgetln_context *libgetln_new_context(void *, size_t, unsigned int);
+extern struct libgetln_context *libgetln_new_context(size_t, int);
 extern int libgetln_free_context(struct libgetln_context *, int *);
-extern int libgetln_set_file(struct libgetln_context *, int);
+extern int libgetln_set_file(struct libgetln_context *, void *, unsigned int);
 extern int libgetln_get_file(struct libgetln_context *);
-extern void libgetln_reset_buffer(struct libgetln_context *);
+extern int libgetln_reset_buffer(struct libgetln_context *);
 extern size_t libgetln_getline(struct libgetln_context *, char **, size_t *);
 
 #endif /* _LIBGETLINE_H_ */

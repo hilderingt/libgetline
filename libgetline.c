@@ -96,9 +96,9 @@ int libgetln_reset_buffer(struct libgetln_context *ctx)
 	return (0);
 }
 
-int libgetln_set_file(struct libgetln_context *ctx, void *fd, unsigned int opts)
+int libgetln_set_file(struct libgetln_context *ctx, void *file, unsigned int opts)
 {
-	if (ctx == NULL || fd == NULL) {
+	if (ctx == NULL || file == NULL) {
 		errno = EINVAL;
 		
 		if (ctx->flg.verbose)
@@ -107,7 +107,7 @@ int libgetln_set_file(struct libgetln_context *ctx, void *fd, unsigned int opts)
 		return (-1);
 	}
 	
-	if (opts & LIBGETLN_OPT_FILE_ISFD) {
+	if (opts & LIBGETLN_FILE_ISFD) {
 		if (*(int *)file < 0) {
 			errno = EBADF;
 
@@ -118,7 +118,7 @@ int libgetln_set_file(struct libgetln_context *ctx, void *fd, unsigned int opts)
 		}
 
 		ctx->file = *(int *)file;
-		ctx->flg.closefd = !!(opts & LIBGETLN_OPT_FILE_CLOSE);
+		ctx->flg.closefd = !!(opts & LIBGETLN_FILE_CLOSE);
 	} else {
 		int fd = open((char *)file, O_RDONLY);
 
@@ -131,7 +131,7 @@ int libgetln_set_file(struct libgetln_context *ctx, void *fd, unsigned int opts)
 
 		ctx->file = fd;
 		ctx->flg.closefd = 1 ^ !!(opts & 
-								LIBGETLN_OPT_FILE_NOCLOSE);
+								LIBGETLN_FILE_NOCLOSE);
 	}
 	
 	ctx->dpos = ctx->data;
