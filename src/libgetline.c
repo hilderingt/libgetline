@@ -12,6 +12,7 @@
 #include <fcntl.h>
 
 #include "libgetline.h"
+//#include "config.h"
 
 #define MSB(t, n)  ((t)1 << (sizeof(t) * CHAR_BIT - 1) & n)
 
@@ -24,11 +25,12 @@ struct libgetln_context {
 		unsigned char eof:1;
 		unsigned char verbose:1;
 		unsigned char closefd:1;
+		unsigned char noempty:1;
 	} flg;
 	char data[0];
 };
 
-struct libgetln_context *libgetln_new_context(size_t size, int verbose) 
+struct libgetln_context *libgetln_new_context(size_t size, unsigned int opts) 
 {
 	struct libgetln_context *ctx;
 	
@@ -44,7 +46,8 @@ struct libgetln_context *libgetln_new_context(size_t size, int verbose)
 		return (NULL);
 	}
 	
-	ctx->flg.verbose = verbose;
+	ctx->flg.verbose = !!(opts & LIBGETLN_OPT_VERBOSE);
+	ctx->flg.skip = !!(opts & LIBGETLN_OPT_NOEMPTY);
 	ctx->size = size;	
 	ctx->flg.eof = 0;
 	ctx->file = -1;
@@ -198,38 +201,40 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 			if (p != NULL)
 				cplen = ++p - ctx->dpos;
 
-			if (SIZE_MAX - llen < cplen + 1) {
-				errno = EOVERFLOW;
+			if (cplen > 1 || !ctx->flg.noempty) {
+				if (SIZE_MAX - llen < cplen + 1) {
+					errno = EOVERFLOW;
 
-				if (ctx->flg.verbose)
-					perror("libgetln_getline:");
-
-				return (SIZE_MAX);
-			}
-
-			lsize = llen + cplen + !llen;		
-
-			if (*size < lsize) {
-				if (!MSB(size_t, *size) && lsize < *size * 2)
-					lsize = *size * 2;
-		
-				new = realloc(*line, lsize);
-
-				if (new == NULL) {
 					if (ctx->flg.verbose)
-						perror("libgetln_getline: realloc");
+						perror("libgetln_getline:");
 
 					return (SIZE_MAX);
 				}
 
-				*line = new;
-				*size = lsize;
+				lsize = llen + cplen + !llen;		
+
+				if (*size < lsize) {
+					if (!MSB(size_t, *size) && lsize < *size * 2)
+						lsize = *size * 2;
+			
+					new = realloc(*line, lsize);
+
+					if (new == NULL) {
+						if (ctx->flg.verbose)
+							perror("libgetln_getline: realloc");
+
+						return (SIZE_MAX);
+					}
+
+					*line = new;
+					*size = lsize;
+				}
+
+				memcpy(&(*line)[llen], ctx->dpos, cplen);
+
+				llen += cplen;
+				(*line)[llen] = '\0';
 			}
-
-			memcpy(&(*line)[llen], ctx->dpos, cplen);
-
-			llen += cplen;
-			(*line)[llen] = '\0';
 
 			if (p == NULL || p == end) {
 				ctx->dpos = ctx->data;
