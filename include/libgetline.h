@@ -6,22 +6,20 @@ enum {
 };
 
 enum {
-	LIBGETLN_OPT_VERBOSE = 1,
-	LIBGETLN_OPT_NOEMPTY = 2
-};
-
-enum {
-	LIBGETLN_FILE_ISFD    = 1,
-	LIBGETLN_FILE_CLOSE   = 2,
-	LIBGETLN_FILE_NOCLOSE = 4
+	LIBGETLN_VERBOSE = 1, 
+	LIBGETLN_NOBLANK = 2,
+	LIBGETLN_NOCLOSE = 4
 };
 
 struct libgetln_context;
 
 extern struct libgetln_context *libgetln_new_context(size_t, unsigned int);
 extern int libgetln_free_context(struct libgetln_context *, int *);
-extern int libgetln_set_file(struct libgetln_context *, void *, unsigned int);
+extern int libgetln_open_file(struct libgetln_context *, char *);
+extern int libgetln_set_file(struct libgetln_context *, int);
 extern int libgetln_get_file(struct libgetln_context *);
+extern int libgetln_set_state(struct libgetln_context *, unsigned int);
+extern int libgetln_clear_state(struct libgetln_context *, unsigned int);
 extern int libgetln_reset_buffer(struct libgetln_context *);
 extern size_t libgetln_getline(struct libgetln_context *, char **, size_t *);
 
