@@ -21,9 +21,7 @@ static inline unsigned int ctx_##name(struct libgetln_context *ctx) \
 	return (ctx->state & flag);                                 \
 }
 
-enum {
-	LIBGETLN_EOF = 8
-};
+#define LIBGETLN_EOF 8u
 
 struct libgetln_context {
 	char *dpos;
@@ -34,10 +32,10 @@ struct libgetln_context {
 	char data[0];
 };
 
-CTX_FNS(eof, LIBGETLN_EOF)
-CTX_FNS(noclose, LIBGETLN_NOCLOSE)
 CTX_FNS(verbose, LIBGETLN_VERBOSE)
 CTX_FNS(noblank, LIBGETLN_NOBLANK)
+CTX_FNS(noclose, LIBGETLN_NOCLOSE)
+CTX_FNS(eof, LIBGETLN_EOF)
 
 struct libgetln_context *libgetln_new_context(size_t size, unsigned int state) 
 {
@@ -56,8 +54,8 @@ struct libgetln_context *libgetln_new_context(size_t size, unsigned int state)
 	}
 	
 	ctx->state = state & (LIBGETLN_VERBOSE | 
-                              LIBGETLN_NOBLANK | 
-                              LIBGETLN_NOCLOSE);
+                          LIBGETLN_NOBLANK | 
+                          LIBGETLN_NOCLOSE);
 	ctx->size = size;
 	ctx->file = -1;
 
@@ -186,7 +184,9 @@ int libgetln_set_state(struct libgetln_context *ctx, unsigned int state)
 		return (-1);
 	}
 
-	ctx->state |= state;
+	ctx->state |= (state & (LIBGETLN_VERBOSE |
+                            LIBGETLN_NOBLANK |
+                            LIBGETLN_NOCLOSE));
 
 	return (0);
 }
@@ -202,7 +202,9 @@ int libgetln_clear_state(struct libgetln_context *ctx, unsigned int state)
 		return (-1);
 	}
 
-	ctx->state &= ~state;
+	ctx->state &= (~state & (LIBGETLN_VERBOSE |
+                             LIBGETLN_NOBLANK |
+                             LIBGETLN_NOCLOSE)) | LIBGETLN_EOF;
 
 	return (0);
 }

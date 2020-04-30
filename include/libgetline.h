@@ -1,15 +1,11 @@
 #ifndef _LIBGETLINE_H_
 #define _LIBGETLINE_H_
 
-enum {
-	LIBGETLN_SIZE_DEFAULT = 4096
-};
+#define LIBGETLN_VERBOSE 1u
+#define LIBGETLN_NOBLANK 2u
+#define LIBGETLN_NOCLOSE 4u
 
-enum {
-	LIBGETLN_VERBOSE = 1, 
-	LIBGETLN_NOBLANK = 2,
-	LIBGETLN_NOCLOSE = 4
-};
+#define LIBGETLN_SIZE_DEFAULT 4096u
 
 struct libgetln_context;
 
