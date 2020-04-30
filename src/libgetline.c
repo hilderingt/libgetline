@@ -21,7 +21,7 @@ static inline unsigned int ctx_##name(struct libgetln_context *ctx) \
 	return (ctx->state & flag);                                 \
 }
 
-#define LIBGETLN_EOF 8u
+#define LIBGETLN_EOF ((unsigned int)8)
 
 struct libgetln_context {
 	char *dpos;

@@ -1,11 +1,11 @@
 #ifndef _LIBGETLINE_H_
 #define _LIBGETLINE_H_
 
-#define LIBGETLN_VERBOSE 1u
-#define LIBGETLN_NOBLANK 2u
-#define LIBGETLN_NOCLOSE 4u
+#define LIBGETLN_VERBOSE ((unsigned int)1)
+#define LIBGETLN_NOBLANK ((unsigned int)2)
+#define LIBGETLN_NOCLOSE ((unsigned int)4)
 
-#define LIBGETLN_SIZE_DEFAULT 4096u
+#define LIBGETLN_SIZE_DEFAULT ((size_t)4096)
 
 struct libgetln_context;
 
