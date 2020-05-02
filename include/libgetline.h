@@ -1,10 +1,10 @@
 #ifndef _LIBGETLINE_H_
 #define _LIBGETLINE_H_
 
-#define LIBGETLN_CTX_VERBOSE(s) (s & LIBGETLN_VERBOSE)
-#define LIBGETLN_CTX_NOBLANK(s) (s & LIBGETLN_NOBLANK)
-#define LIBGETLN_CTX_NOCLOSE(s) (s & LIBGETLN_NOCLOSE)
-#define LIBGETLN_CTX_EOF(s)     (s & LIBGETLN_EOF)
+#define STATE_VERBOSE(s) (s & LIBGETLN_VERBOSE)
+#define STATE_NOBLANK(s) (s & LIBGETLN_NOBLANK)
+#define STATE_NOCLOSE(s) (s & LIBGETLN_NOCLOSE)
+#define STATE_EOF(s)     (s & LIBGETLN_EOF)
 
 #define LIBGETLN_VERBOSE ((unsigned int)1)
 #define LIBGETLN_NOBLANK ((unsigned int)2)

@@ -34,7 +34,7 @@ struct libgetln_context *libgetln_new_context(size_t size, unsigned int state)
 	ctx = malloc(sizeof(struct libgetln_context) + size * sizeof(char));
 
 	if (ctx == NULL) {
-		if (state & LIBGETLN_VERBOSE)
+		if (STATE_VERBOSE(state))
 			perror("libgetln_new_context: malloc");
 
 		return (NULL);
@@ -54,15 +54,15 @@ int libgetln_free_context(struct libgetln_context *ctx, int *fd)
 	if (ctx == NULL) {
 		errno = EINVAL;
 		
-		if (LIBGETLN_CTX_VERBOSE(ctx->state))
+		if (STATE_VERBOSE(ctx->state))
 			perror("libgetln_free_context");
 		
 		return (-1);
 	}
 	
 	if (ctx->file > 0 && 
-		!LIBGETLN_CTX_NOCLOSE(ctx->state) && close(ctx->file) < 0) {
-		if (LIBGETLN_CTX_VERBOSE(ctx->state))
+		!STATE_NOCLOSE(ctx->state) && close(ctx->file) < 0) {
+		if (STATE_VERBOSE(ctx->state))
 			perror("libgetln_free_context: close");
 
 		if (fd != NULL)
@@ -81,7 +81,7 @@ int libgetln_reset_buffer(struct libgetln_context *ctx)
 	if (ctx == NULL) {
 		errno = EINVAL;
 		
-		if (LIBGETLN_CTX_VERBOSE(ctx->state))
+		if (STATE_VERBOSE(ctx->state))
 			perror("libgetln_reset_context");
 		
 		return (-1);
@@ -98,7 +98,7 @@ int libgetln_set_file(struct libgetln_context *ctx, int fd)
 	if (ctx == NULL) {
 		errno = EINVAL;
 		
-		if (LIBGETLN_CTX_VERBOSE(ctx->state))
+		if (STATE_VERBOSE(ctx->state))
 			perror("libgetln_set_file");
 		
 		return (-1);
@@ -107,7 +107,7 @@ int libgetln_set_file(struct libgetln_context *ctx, int fd)
 	if (fd < 0) {
 		errno = EBADF;
 
-		if (LIBGETLN_CTX_VERBOSE(ctx->state))
+		if (STATE_VERBOSE(ctx->state))
 			perror("libgetln_set_file");
 
 		return (-1);
@@ -125,7 +125,7 @@ int libgetln_open_file(struct libgetln_context *ctx, char *filename)
 	if (ctx == NULL || filename == NULL) {
 		errno = EINVAL;
 		
-		if (LIBGETLN_CTX_VERBOSE(ctx->state))
+		if (STATE_VERBOSE(ctx->state))
 			perror("libgetln_set_file");
 		
 		return (-1);
@@ -134,7 +134,7 @@ int libgetln_open_file(struct libgetln_context *ctx, char *filename)
 	int fd = open((char *)filename, O_RDONLY);
 
 	if (fd < 0) {
-		if (LIBGETLN_CTX_VERBOSE(ctx->state))
+		if (STATE_VERBOSE(ctx->state))
 			perror("libgetln_new_context: open");
 
 		return (-1);
@@ -152,7 +152,7 @@ int libgetln_get_file(struct libgetln_context *ctx)
 	if (ctx == NULL) {
 		errno = EINVAL;
 		
-		if (LIBGETLN_CTX_VERBOSE(ctx->state))
+		if (STATE_VERBOSE(ctx->state))
 			perror("libgetln_get_file");
 		
 		return (-1);
@@ -166,7 +166,7 @@ int libgetln_set_state(struct libgetln_context *ctx, unsigned int state)
 	if (ctx == NULL) {
 		errno = EINVAL;
 		
-		if (LIBGETLN_CTX_VERBOSE(ctx->state))
+		if (STATE_VERBOSE(ctx->state))
 			perror("libgetln_set_state");
 		
 		return (-1);
@@ -184,7 +184,7 @@ int libgetln_clear_state(struct libgetln_context *ctx, unsigned int state)
 	if (ctx == NULL) {
 		errno = EINVAL;
 		
-		if (LIBGETLN_CTX_VERBOSE(ctx->state))
+		if (STATE_VERBOSE(ctx->state))
 			perror("libgetln_clear_state");
 		
 		return (-1);
@@ -206,7 +206,7 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 	if (ctx == NULL || line == NULL) {
 		errno = EINVAL;
 		
-		if (LIBGETLN_CTX_VERBOSE(ctx->state))
+		if (STATE_VERBOSE(ctx->state))
 			perror("libgetln_getline");
 		
 		return (SIZE_MAX);
@@ -215,20 +215,20 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 	if (ctx->file < 0) {
 		errno = EBADF;
 		
-		if (LIBGETLN_CTX_VERBOSE(ctx->state))
+		if (STATE_VERBOSE(ctx->state))
 			perror("libgetln_getline");
 		
 		return (SIZE_MAX);
 	}
 
-	if (LIBGETLN_CTX_EOF(ctx->state))
+	if (STATE_EOF(ctx->state))
 		return (0);
 	
 	if (*line == NULL && *size) {
 		*line = malloc(*size * sizeof(char));
 			
 		if (*line == NULL) {
-			if (LIBGETLN_CTX_VERBOSE(ctx->state))
+			if (STATE_VERBOSE(ctx->state))
 				perror("libgetln_getline: malloc");
 				
 			return (SIZE_MAX);
@@ -244,11 +244,11 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 				cplen = ++p - ctx->dpos;
 
 			if (cplen > 1 || p == NULL || 
-				!LIBGETLN_CTX_NOBLANK(ctx->state)) {
+				!STATE_NOBLANK(ctx->state)) {
 				if (SIZE_MAX - llen < cplen + 1) {
 					errno = EOVERFLOW;
 
-					if (LIBGETLN_CTX_VERBOSE(ctx->state))
+					if (STATE_VERBOSE(ctx->state))
 						perror("libgetln_getline:");
 
 					return (SIZE_MAX);
@@ -263,7 +263,7 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 					new = realloc(*line, lsize);
 
 					if (new == NULL) {
-						if (LIBGETLN_CTX_VERBOSE(ctx->state))
+						if (STATE_VERBOSE(ctx->state))
 							perror("libgetln_getline: realloc");
 
 						return (SIZE_MAX);
@@ -298,7 +298,7 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 					continue;
 				}
 
-				if (LIBGETLN_CTX_VERBOSE(ctx->state))
+				if (STATE_VERBOSE(ctx->state))
 					perror("libgetln_getline: read");
 
 				return (SIZE_MAX);
