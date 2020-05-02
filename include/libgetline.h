@@ -1,9 +1,15 @@
 #ifndef _LIBGETLINE_H_
 #define _LIBGETLINE_H_
 
+#define LIBGETLN_CTX_VERBOSE(s) (s & LIBGETLN_VERBOSE)
+#define LIBGETLN_CTX_NOBLANK(s) (s & LIBGETLN_NOBLANK)
+#define LIBGETLN_CTX_NOCLOSE(s) (s & LIBGETLN_NOCLOSE)
+#define LIBGETLN_CTX_EOF(s)     (s & LIBGETLN_EOF)
+
 #define LIBGETLN_VERBOSE ((unsigned int)1)
 #define LIBGETLN_NOBLANK ((unsigned int)2)
 #define LIBGETLN_NOCLOSE ((unsigned int)4)
+#define LIBGETLN_EOF     ((unsigned int)8)
 
 #define LIBGETLN_SIZE_DEFAULT ((size_t)4096)
 
