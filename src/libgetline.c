@@ -49,7 +49,7 @@ struct libgetln_context *libgetln_new_context(size_t size, unsigned int state)
 	return (ctx);
 }
 
-int libgetln_free_context(struct libgetln_context *ctx, int *fd)
+int libgetln_free_context(struct libgetln_context *ctx, int * const fd)
 {
 	if (ctx == NULL) {
 		errno = EINVAL;
@@ -128,7 +128,7 @@ int libgetln_set_file(struct libgetln_context *ctx, int fd)
 	return (0);
 }
 
-int libgetln_open_file(struct libgetln_context *ctx, char *filename)
+int libgetln_open_file(struct libgetln_context *ctx, char const *filename)
 {
 	if (ctx == NULL || filename == NULL) {
 		errno = EINVAL;
@@ -163,7 +163,7 @@ int libgetln_open_file(struct libgetln_context *ctx, char *filename)
 	return (0);
 }
 
-int libgetln_get_file(struct libgetln_context *ctx)
+int libgetln_get_file(struct libgetln_context const *ctx)
 {
 	if (ctx == NULL) {
 		errno = EINVAL;
@@ -214,7 +214,7 @@ int libgetln_clear_state(struct libgetln_context *ctx, unsigned int state)
 	return (0);
 }
 
-size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
+size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t * const size)
 {
 	size_t cnt, need, cplen, lsize, llen = 0;
 	char *p, *new, *end;

@@ -16,13 +16,13 @@
 struct libgetln_context;
 
 extern struct libgetln_context *libgetln_new_context(size_t, unsigned int);
-extern int libgetln_free_context(struct libgetln_context *, int *);
-extern int libgetln_open_file(struct libgetln_context *, char *);
+extern int libgetln_free_context(struct libgetln_context *, int * const);
+extern int libgetln_open_file(struct libgetln_context *, char const *);
 extern int libgetln_set_file(struct libgetln_context *, int);
-extern int libgetln_get_file(struct libgetln_context *);
+extern int libgetln_get_file(struct libgetln_context const *);
 extern int libgetln_set_state(struct libgetln_context *, unsigned int);
 extern int libgetln_clear_state(struct libgetln_context *, unsigned int);
 extern int libgetln_reset_buffer(struct libgetln_context *);
-extern size_t libgetln_getline(struct libgetln_context *, char **, size_t *);
+extern size_t libgetln_getline(struct libgetln_context *, char **, size_t * const);
 
 #endif /* _LIBGETLINE_H_ */
