@@ -216,8 +216,8 @@ int libgetln_clear_state(struct libgetln_context *ctx, unsigned int state)
 
 size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 {
-	char *p, *new, *end = &ctx->dpos[ctx->used];
 	size_t cnt, need, cplen, lsize, llen = 0;
+	char *p, *new, *end;
 	int err;
 
 	if (ctx == NULL || line == NULL) {
@@ -251,6 +251,8 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 			return (SIZE_MAX);
 		}
 	}
+	
+	end = ctx->used ? &ctx->dpos[ctx->used] : ctx->dpos;
 
 	for (;;) {
 		if (ctx->used) {
