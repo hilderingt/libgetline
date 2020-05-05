@@ -208,7 +208,8 @@ int libgetln_clear_state(struct libgetln_context *ctx, unsigned int state)
 
 	ctx->state &= (~state & (LIBGETLN_ST_VERBOSE |
 				LIBGETLN_ST_NOBLANK |
-				LIBGETLN_ST_NOCLOSE)) | LIBGETLN_ST_EOF;
+				LIBGETLN_ST_NOCLOSE)) | 
+				LIBGETLN_ST_EOF;
 
 	return (0);
 }
@@ -216,7 +217,7 @@ int libgetln_clear_state(struct libgetln_context *ctx, unsigned int state)
 size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 {
 	char *p, *new, *end = &ctx->dpos[ctx->used];
-	size_t cnt, cplen, lsize, llen = 0;
+	size_t cnt, need, cplen, lsize, llen = 0;
 	int err;
 
 	if (ctx == NULL || line == NULL) {
@@ -260,8 +261,10 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 				cplen = ++p - ctx->dpos;
 
 			if (cplen > 1 || p == NULL ||
-				!LIBGETLN_NOBLANK(ctx->state)) {
-				if (SIZE_MAX - llen < cplen + 1) {
+			!LIBGETLN_NOBLANK(ctx->state)) {
+				need = cplen + !llen;
+
+				if (SIZE_MAX - llen < need) {
 					errno = EOVERFLOW;
 
 					if (LIBGETLN_VERBOSE(ctx->state))
@@ -270,7 +273,7 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 					return (SIZE_MAX);
 				}
 
-				lsize = llen + cplen + !llen;
+				lsize = llen + need;
 
 				if (*size < lsize) {
 					if (!MSB(size_t, *size) && lsize < *size * 2)
