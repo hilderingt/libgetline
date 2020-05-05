@@ -301,6 +301,9 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 			if (p == NULL || p == end) {
 				ctx->dpos = ctx->data;
 				ctx->used = 0;
+				
+				if (p == end)
+					return (llen);
 			} else {
 				ctx->used = &ctx->dpos[ctx->used] - p;
 				ctx->dpos = p;
@@ -328,6 +331,7 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t *size)
 				return (llen);
 			}
 
+			end = &ctx->data[cnt];
 			ctx->used = cnt;
 		}
 	}
