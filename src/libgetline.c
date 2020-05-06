@@ -120,6 +120,8 @@ int libgetln_set_file(struct libgetln_context *ctx, int fd)
 
 int libgetln_open_file(struct libgetln_context *ctx, char const *filename)
 {
+	int fd;
+
 	if (ctx == NULL || filename == NULL) {
 		errno = EINVAL;
 
@@ -137,7 +139,7 @@ int libgetln_open_file(struct libgetln_context *ctx, char const *filename)
 		return (-1);
 	}
 
-	int fd = open((char *)filename, O_RDONLY);
+	fd = open((char *)filename, O_RDONLY);
 
 	if (fd < 0) {
 		if (LIBGETLN_VERBOSE(ctx->state))
