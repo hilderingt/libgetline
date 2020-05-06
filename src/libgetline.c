@@ -11,18 +11,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "libgetlineP.h"
 #include "libgetline.h"
-
-#define MSB(t, n) ((t)1 << (sizeof(t) * CHAR_BIT - 1) & n)
-
-struct libgetln_context {
-	char *dpos;
-	size_t size;
-	size_t used;
-	int file;
-	unsigned int state;
-	char data[0];
-};
 
 struct libgetln_context *libgetln_new_context(size_t size, unsigned int state) 
 {
@@ -216,8 +206,9 @@ int libgetln_clear_state(struct libgetln_context *ctx, unsigned int state)
 
 size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t * const size)
 {
-	size_t cnt, need, cplen, lsize, llen = 0;
+	size_t need, cplen, lsize, llen = 0;
 	char *p, *new, *end;
+	ssize_t cnt;
 	int err;
 
 	if (ctx == NULL || line == NULL) {
@@ -316,7 +307,7 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t * cons
 			err = errno;
 			cnt = read(ctx->file, ctx->data, ctx->size);
 
-			if (cnt == (size_t)-1) {
+			if (cnt < 0) {
 				if (errno == EINTR || errno == EAGAIN) {
 					errno = err;
 					continue;
