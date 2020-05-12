@@ -21,10 +21,10 @@
 
 static void *realloc_int(void *ptr, size_t size)
 {
-		if (ptr == NULL)
-			return (malloc(size));
+	if (ptr == NULL)
+		return (malloc(size));
 		
-		return (realloc(ptr, size);
+	return (realloc(ptr, size);
 }
 
 #endif /* HAVE_REALLOC */
