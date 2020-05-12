@@ -16,6 +16,16 @@
 
 #include "config.h"
 
+#if !HAVE_REALLOC
+#define realloc(p, s) realloc_int(p, s)
+
+static void *realloc_int(void *ptr, size_t size)
+{
+		return (malloc(size));
+}
+
+#endif /* HAVE_REALLOC */
+
 struct libgetln_context *libgetln_new_context(size_t size, unsigned int state) 
 {
 	struct libgetln_context *ctx;
