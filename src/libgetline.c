@@ -200,7 +200,7 @@ int libgetln_get_state(struct libgetln_context *ctx, unsigned int *state)
 		return (-1);
 	}
 		
-	state = ctx->state;
+	*state = ctx->state;
 	return (0);
 }
 
