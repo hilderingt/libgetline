@@ -195,7 +195,7 @@ int libgetln_get_state(struct libgetln_context *ctx, unsigned int *state)
 			errno = EINVAL;
 
 			if (LIBGETLN_VERBOSE(ctx->state))
-				perror("libgetln_clear_state");
+				perror("libgetln_get_state");
 
 			return (-1);
 		}
