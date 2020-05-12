@@ -14,6 +14,8 @@
 #include "libgetlineP.h"
 #include "libgetline.h"
 
+#include "config.h"
+
 struct libgetln_context *libgetln_new_context(size_t size, unsigned int state) 
 {
 	struct libgetln_context *ctx;
