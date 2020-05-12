@@ -189,6 +189,21 @@ int libgetln_set_state(struct libgetln_context *ctx, unsigned int state)
 	return (0);
 }
 
+int libgetln_get_state(struct libgetln_context *ctx, unsigned int *state)
+{
+		if (ctx == NULL || state == NULL) {
+			errno = EINVAL;
+
+			if (LIBGETLN_VERBOSE(ctx->state))
+				perror("libgetln_clear_state");
+
+			return (-1);
+		}
+		
+		state = ctx->state;
+		return (0);
+}
+
 int libgetln_clear_state(struct libgetln_context *ctx, unsigned int state)
 {
 	if (ctx == NULL) {
