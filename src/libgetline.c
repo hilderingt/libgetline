@@ -24,7 +24,7 @@ static void *realloc_int(void *ptr, size_t size)
 	if (ptr == NULL)
 		return (malloc(size));
 		
-	return (realloc(ptr, size);
+	return (realloc(ptr, size));
 }
 
 #endif /* HAVE_REALLOC */
@@ -275,7 +275,7 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t * cons
 		}
 	}
 	
-	end = ctx->used ? &ctx->dpos[ctx->used] : ctx->dpos;
+	end = ctx->dpos + ctx->used;
 
 	for (;;) {
 		if (ctx->used) {
