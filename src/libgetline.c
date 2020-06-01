@@ -17,7 +17,6 @@
 #include "config.h"
 
 #if !HAVE_REALLOC
-#define realloc(p, s) realloc_int(p, s)
 
 static void *realloc_int(void *ptr, size_t size)
 {
@@ -26,6 +25,8 @@ static void *realloc_int(void *ptr, size_t size)
 		
 	return (realloc(ptr, size));
 }
+
+#define realloc(p, s) realloc_int(p, s)
 
 #endif /* HAVE_REALLOC */
 
