@@ -290,7 +290,7 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t * cons
 			!LIBGETLN_NOBLANK(ctx->state)) {
 				need = cplen + !llen;
 
-				if (SIZE_MAX - llen < need) {
+				if (~lsize < need) {
 					errno = EOVERFLOW;
 
 					if (LIBGETLN_VERBOSE(ctx->state))
@@ -299,10 +299,10 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t * cons
 					return (SIZE_MAX);
 				}
 
-				lsize = llen + need;
+				lsize = lsize + need;
 
 				if (*size < lsize) {
-					if (!MSB(size_t, *size) && lsize < *size * 2)
+					if (lsize < *size * 2 && !MSB(size_t, *size))
 						lsize = *size * 2;
 
 					new = realloc(*line, lsize);
@@ -318,7 +318,7 @@ size_t libgetln_getline(struct libgetln_context *ctx, char **line, size_t * cons
 					*size = lsize;
 				}
 
-				memcpy(&(*line)[llen], ctx->dpos, cplen);
+				memcpy(*line + llen, ctx->dpos, cplen);
 
 				llen += cplen;
 				(*line)[llen] = '\0';
